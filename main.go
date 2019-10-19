@@ -158,11 +158,18 @@ func FindTwitterImage(db *sqlx.DB, id string) (*TwitterImageModel, error) {
 	if err := db.Get(&t,
 		`SELECT twitter_id, twitter_icon_url FROM twitter_user WHERE twitter_id = ?`,
 		id); err != nil {
-		fmt.Print("errrrrr")
+		if err == sql.ErrNoRows {
+			fmt.Printf("insert data")
+
+		} else {
+			fmt.Printf("%s", err)
+		}
 		return nil, err
 	}
 	return &t, nil
 }
+
+func 
 
 //  middle ware
 func RecoverMiddleware(next http.Handler) http.Handler {
