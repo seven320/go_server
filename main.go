@@ -1,14 +1,18 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"runtime/debug"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
+	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
 	"github.com/justinas/alice"
 
@@ -38,7 +42,7 @@ func main() {
 }
 
 type Server struct {
-	// db     *sqlx.DB
+	db     *sqlx.DB
 	router *mux.Router
 }
 
@@ -47,13 +51,30 @@ func NewServer() *Server {
 }
 
 func (s *Server) Init(datasource string) {
-	// cs := db.NewDB(datasource)
-	// dbcon, err := cs.Open()
-	// if err != nil {
-	// 	log.Fatalf("failed db init. %s", err)
-	// }
-	// s.db = dbcon
+	cs := NewDB(datasource)
+	dbcon, err := cs.Open()
+	if err != nil {
+		log.Fatalf("failed db init. %s", err)
+	}
+	s.db = dbcon
 	s.router = s.Route()
+}
+
+// package db
+// import ("github.com/go-sql-driver/mysql")
+
+type DB struct {
+	datasource string
+}
+
+func NewDB(datasource string) *DB {
+	return &DB{
+		datasource: datasource,
+	}
+}
+
+func (db *DB) Open() (*sqlx.DB, error) {
+	return sqlx.Open("mysql", db.datasource)
 }
 
 func (s *Server) Run(addr string) {
@@ -76,9 +97,71 @@ func (s *Server) Route() *mux.Router {
 	r := mux.NewRouter()
 
 	r.Methods(http.MethodGet).Path("/twitter_image").Handler(commonChain.Then(NewPublicHandler()))
+
+	twitterimageController := NewTwitterImage(s.db)
+	r.Methods(http.MethodGet).Path("/show_databases").Handler(commonChain.Then(AppHandler{twitterimageController.Show}))
 	// twitterController := controller.NewTwitterImage()
 	// r.Methods(http.MethodPost).Path("/twitter_image").Handler(commonChain.Then(AppHandler{}))
 	return r
+}
+
+// package controller
+type TwitterImage struct {
+	db *sqlx.DB
+}
+
+func NewTwitterImage(db *sqlx.DB) *TwitterImage {
+	return &TwitterImage{db: db}
+}
+
+func (t *TwitterImage) Show(w http.ResponseWriter, r *http.Request) (int, interface{}, error) {
+	// vars := mux.Vars(r)
+
+	u, err := url.Parse(r.URL.String())
+	query := u.Query()
+	val, _ := query["id"]
+	id := val[0]
+
+	// if val, ok := query["id"]; ok {
+	// 	fmt.Printf("%s", val)
+	// 	id := val[0]
+	// }
+
+	// fmt.Printf("vars%s", vars)
+	// id, ok := vars["id"]
+	fmt.Printf("hogehoge%s", id)
+
+	// if !ok {
+	// 	return http.StatusBadRequest, nil, &HTTPError{Message: "invalid path parameter"}
+	// }
+
+	twitterimage, err := FindTwitterImage(t.db, id)
+	if err != nil && err == sql.ErrNoRows {
+		return http.StatusBadRequest, nil, err
+	} else if err != nil {
+		return http.StatusBadRequest, nil, err
+	}
+
+	return http.StatusCreated, twitterimage, nil
+}
+
+// package model
+type TwitterImageModel struct {
+	ID      string `db:"twitter_id"`
+	Twitter string `db:"twitter_icon_url"`
+}
+
+// package repository
+
+func FindTwitterImage(db *sqlx.DB, id string) (*TwitterImageModel, error) {
+	t := TwitterImageModel{}
+	if err := db.Get(&t,
+		`SELECT twitter_id, twitter_icon_url FROM twitter_user WHERE twitter_id = ?`,
+		id); err != nil {
+		fmt.Print("errrrrr")
+		return nil, err
+	}
+	return &t, nil
 }
 
 //  middle ware
