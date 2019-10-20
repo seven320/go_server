@@ -37,7 +37,7 @@ func search_tweet(client *http.Client) ([]Tweet, error) {
 }
 
 func main() {
-	config := oauth1.NewConfig(aaaa, consumerSecret)
+	config := oauth1.NewConfig(aagaghaohoga, consumerSecret)
 	token := oauth1.NewToken(token, tokenSecret)
 	httpClient := config.Client(oauth1.NoContext, token)
 
