@@ -164,10 +164,10 @@ func FindTwitterImage(db *sqlx.DB, id string) (*TwitterImageModel, error) {
 	}
 	elapsed := int(time.Since(t.Updateat).Hours())
 	fmt.Printf("elapsed, %d", elapsed)
-	if elapsed > 0{
-		fmt.Printf("update")
+	if elapsed > 24 {
+		UpdateTwitterImage(db, &t)
 	}
-
+	UpdateAccesscount(db, &t)
 	return &t, nil
 }
 
@@ -179,6 +179,26 @@ func CreateTwitterImage(db *sqlx.DB, ti *TwitterImageModel) (sql.Result, error) 
 	defer stmt.Close()
 	log.Printf("insert")
 	return stmt.Exec(ti.ID, ti.Twitter)
+}
+
+func UpdateTwitterImage(db *sqlx.DB, ti *TwitterImageModel) (sql.Result, error) {
+	stmt, err := db.Prepare("UPDATE twitter_user SET twitter_icon_url = ? WHERE twitter_id = ?")
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+	log.Printf("update")
+	return stmt.Exec(ti.Twitter, ti.ID)
+}
+
+func UpdateAccesscount(db *sqlx.DB, ti *TwitterImageModel) (sql.Result, error) {
+	stmt, err := db.Prepare("UPDATE twitter_user SET access_cnt = access_cnt + 1 WHERE twitter_id = ?")
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+	log.Printf("count up")
+	return stmt.Exec(ti.ID)
 }
 
 //  middle ware
