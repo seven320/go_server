@@ -1,5 +1,6 @@
-// package twitter
-package main
+package twitter
+
+// package main
 
 import (
 	"fmt"
@@ -12,7 +13,8 @@ import (
 )
 
 func loadEnv() {
-	err := godotenv.Load()
+	err := godotenv.Load("./envfiles/.env")
+	// err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
@@ -24,20 +26,21 @@ func getTwitterApi() *anaconda.TwitterApi {
 	return anaconda.NewTwitterApi(os.Getenv("ACCESS_TOKEN"), os.Getenv("ACCESS_TOKEN_SECRET"))
 }
 
-func getUserImage(user string) (imageurl string) {
-
+func GetUserImage(user string) (imageurl string, err error) {
 	loadEnv()
 	api := getTwitterApi()
 	v := url.Values{}
 
-	User, err := api.GetUsersLookup("yosyuaomenww", v)
+	User, err := api.GetUsersLookup(user, v)
 	if err != nil {
 		fmt.Printf("%s", err)
+		return "", err
 	}
-	fmt.Printf("%s", User[0].ProfileImageURL)
-	return User[0].ProfileImageURL
+	// fmt.Printf("%s", User[0].ProfileImageURL)
+	return User[0].ProfileImageURL, nil
 }
 
-func main() {
-	_ = getUserImage("yosyuaomenww")
-}
+// func main() {
+// 	userImage, _ := getUserImage("yosyuaomenww")
+// 	fmt.Printf(userImage)
+// }
