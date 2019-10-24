@@ -1,24 +1,21 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"runtime/debug"
-	"time"
 
-	"./twitter"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
 	"github.com/justinas/alice"
 
+	"./controller"
 	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -63,7 +60,6 @@ func (s *Server) Init(datasource string) {
 }
 
 // package db
-// import ("github.com/go-sql-driver/mysql")
 
 type DB struct {
 	datasource string
@@ -100,7 +96,8 @@ func (s *Server) Route() *mux.Router {
 
 	r.Methods(http.MethodGet).Path("/twitter_image").Handler(commonChain.Then(NewPublicHandler()))
 
-	twitterimageController := NewTwitterImage(s.db)
+	twitterimageController := controller.NewTwitterImage(s.db)
+
 	r.Methods(http.MethodGet).Path("/show_databases").Handler(commonChain.Then(AppHandler{twitterimageController.Show}))
 	// twitterController := controller.NewTwitterImage()
 	// r.Methods(http.MethodPost).Path("/twitter_image").Handler(commonChain.Then(AppHandler{}))
@@ -108,98 +105,98 @@ func (s *Server) Route() *mux.Router {
 }
 
 // package controller
-type TwitterImage struct {
-	db *sqlx.DB
-}
+// type TwitterImage struct {
+// 	db *sqlx.DB
+// }
 
-func NewTwitterImage(db *sqlx.DB) *TwitterImage {
-	return &TwitterImage{db: db}
-}
+// func NewTwitterImage(db *sqlx.DB) *TwitterImage {
+// 	return &TwitterImage{db: db}
+// }
 
-func (t *TwitterImage) Show(w http.ResponseWriter, r *http.Request) (int, interface{}, error) {
-	// vars := mux.Vars(r)
+// func (t *TwitterImage) Show(w http.ResponseWriter, r *http.Request) (int, interface{}, error) {
+// 	// vars := mux.Vars(r)
 
-	u, _ := url.Parse(r.URL.String())
-	query := u.Query()
-	id := query.Get("id")
+// 	u, _ := url.Parse(r.URL.String())
+// 	query := u.Query()
+// 	id := query.Get("id")
 
-	twitterimage, err := FindTwitterImage(t.db, id)
-	if err != nil && err == sql.ErrNoRows {
-		return http.StatusBadRequest, nil, err
-	} else if err != nil {
-		return http.StatusBadRequest, nil, err
-	}
+// 	twitterimage, err := FindTwitterImage(t.db, id)
+// 	if err != nil && err == sql.ErrNoRows {
+// 		return http.StatusBadRequest, nil, err
+// 	} else if err != nil {
+// 		return http.StatusBadRequest, nil, err
+// 	}
 
-	return http.StatusCreated, twitterimage, nil
-}
+// 	return http.StatusCreated, twitterimage, nil
+// }
 
 // package model
-type TwitterImageModel struct {
-	ID       string    `db:"twitter_id"`
-	Twitter  string    `db:"twitter_icon_url"`
-	Updateat time.Time `db:"update_at"`
-}
+// type TwitterImageModel struct {
+// 	ID       string    `db:"twitter_id"`
+// 	Twitter  string    `db:"twitter_icon_url"`
+// 	Updateat time.Time `db:"update_at"`
+// }
 
 // package repository
-func FindTwitterImage(db *sqlx.DB, id string) (*TwitterImageModel, error) {
-	t := TwitterImageModel{}
-	if err := db.Get(&t,
-		`SELECT twitter_id, twitter_icon_url, update_at FROM twitter_user WHERE twitter_id = ?`,
-		id); err != nil {
-		if err == sql.ErrNoRows {
-			log.Printf("検索")
-			imgurl, err := twitter.GetUserImage(id)
-			if err != nil {
-				log.Printf("twitter error:%s", err)
-				return nil, err
-			}
-			t.ID = id
-			t.Twitter = imgurl
-			CreateTwitterImage(db, &t)
-			return &t, nil
-		} else {
-			log.Printf("%s", err)
-		}
-		return nil, err
-	}
-	elapsed := int(time.Since(t.Updateat).Hours())
-	fmt.Printf("elapsed, %d", elapsed)
-	if elapsed > 24 {
-		UpdateTwitterImage(db, &t)
-	}
-	UpdateAccesscount(db, &t)
-	return &t, nil
-}
+// func FindTwitterImage(db *sqlx.DB, id string) (*TwitterImageModel, error) {
+// 	t := TwitterImageModel{}
+// 	if err := db.Get(&t,
+// 		`SELECT twitter_id, twitter_icon_url, update_at FROM twitter_user WHERE twitter_id = ?`,
+// 		id); err != nil {
+// 		if err == sql.ErrNoRows {
+// 			log.Printf("検索")
+// 			imgurl, err := twitter.GetUserImage(id)
+// 			if err != nil {
+// 				log.Printf("twitter error:%s", err)
+// 				return nil, err
+// 			}
+// 			t.ID = id
+// 			t.Twitter = imgurl
+// 			CreateTwitterImage(db, &t)
+// 			return &t, nil
+// 		} else {
+// 			log.Printf("%s", err)
+// 		}
+// 		return nil, err
+// 	}
+// 	elapsed := int(time.Since(t.Updateat).Hours())
+// 	fmt.Printf("elapsed, %d", elapsed)
+// 	if elapsed > 24 {
+// 		UpdateTwitterImage(db, &t)
+// 	}
+// 	UpdateAccesscount(db, &t)
+// 	return &t, nil
+// }
 
-func CreateTwitterImage(db *sqlx.DB, ti *TwitterImageModel) (sql.Result, error) {
-	stmt, err := db.Prepare("INSERT INTO twitter_user SET twitter_id = ?, twitter_icon_url = ?")
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
-	log.Printf("insert")
-	return stmt.Exec(ti.ID, ti.Twitter)
-}
+// func CreateTwitterImage(db *sqlx.DB, ti *TwitterImageModel) (sql.Result, error) {
+// 	stmt, err := db.Prepare("INSERT INTO twitter_user SET twitter_id = ?, twitter_icon_url = ?")
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer stmt.Close()
+// 	log.Printf("insert")
+// 	return stmt.Exec(ti.ID, ti.Twitter)
+// }
 
-func UpdateTwitterImage(db *sqlx.DB, ti *TwitterImageModel) (sql.Result, error) {
-	stmt, err := db.Prepare("UPDATE twitter_user SET twitter_icon_url = ? WHERE twitter_id = ?")
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
-	log.Printf("update")
-	return stmt.Exec(ti.Twitter, ti.ID)
-}
+// func UpdateTwitterImage(db *sqlx.DB, ti *TwitterImageModel) (sql.Result, error) {
+// 	stmt, err := db.Prepare("UPDATE twitter_user SET twitter_icon_url = ? WHERE twitter_id = ?")
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer stmt.Close()
+// 	log.Printf("update")
+// 	return stmt.Exec(ti.Twitter, ti.ID)
+// }
 
-func UpdateAccesscount(db *sqlx.DB, ti *TwitterImageModel) (sql.Result, error) {
-	stmt, err := db.Prepare("UPDATE twitter_user SET access_cnt = access_cnt + 1 WHERE twitter_id = ?")
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
-	log.Printf("count up")
-	return stmt.Exec(ti.ID)
-}
+// func UpdateAccesscount(db *sqlx.DB, ti *TwitterImageModel) (sql.Result, error) {
+// 	stmt, err := db.Prepare("UPDATE twitter_user SET access_cnt = access_cnt + 1 WHERE twitter_id = ?")
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer stmt.Close()
+// 	log.Printf("count up")
+// 	return stmt.Exec(ti.ID)
+// }
 
 //  middle ware
 func RecoverMiddleware(next http.Handler) http.Handler {
