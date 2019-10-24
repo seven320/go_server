@@ -10,6 +10,7 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"github.com/seven320/go_server/service"
+	// "../service"
 )
 
 type TwitterDB struct {
