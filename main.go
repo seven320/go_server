@@ -16,6 +16,8 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 
+	// "./controller"
+
 	"github.com/seven320/go_server/controller"
 	"github.com/seven320/go_server/db"
 )
