@@ -2,16 +2,12 @@ package repository
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
-	"time"
 
 	"../model"
-	"../twitter"
 	"github.com/jmoiron/sqlx"
 )
 
-// package repository
 func GetTwitterImage(db *sqlx.DB, id string) (*model.TwitterImageModel, error) {
 	t := model.TwitterImageModel{}
 	if err := db.Get(&t,
@@ -19,36 +15,6 @@ func GetTwitterImage(db *sqlx.DB, id string) (*model.TwitterImageModel, error) {
 		id); err != nil {
 		return nil, err
 	}
-	return &t, nil
-}
-
-func FindTwitterImage(db *sqlx.DB, id string) (*model.TwitterImageModel, error) {
-	t := model.TwitterImageModel{}
-	if err := db.Get(&t,
-		`SELECT twitter_id, twitter_icon_url, update_at FROM twitter_user WHERE twitter_id = ?`,
-		id); err != nil {
-		if err == sql.ErrNoRows {
-			log.Printf("検索")
-			imgurl, err := twitter.GetUserImage(id)
-			if err != nil {
-				log.Printf("twitter error:%s", err)
-				return nil, err
-			}
-			t.ID = id
-			t.Twitter = imgurl
-			CreateTwitterImage(db, &t)
-			return &t, nil
-		} else {
-			log.Printf("%s", err)
-		}
-		return nil, err
-	}
-	elapsed := int(time.Since(t.Updateat).Hours())
-	fmt.Printf("elapsed, %d", elapsed)
-	if elapsed > 24 {
-		UpdateTwitterImage(db, &t)
-	}
-	UpdateAccessCount(db, &t)
 	return &t, nil
 }
 
