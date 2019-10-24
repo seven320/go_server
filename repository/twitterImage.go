@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"log"
 
-	"../model"
 	"github.com/jmoiron/sqlx"
+	"github.com/seven320/go_server/model"
 )
 
 func GetTwitterImage(db *sqlx.DB, id string) (*model.TwitterImageModel, error) {

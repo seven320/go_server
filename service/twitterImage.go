@@ -8,10 +8,12 @@ import (
 
 	"../dbutil"
 	"../model"
-	"../repository"
-	"../twitter"
+	"github.com/seven320/go_server/repository"
+
+	// "../twitter"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"github.com/seven320/go_server/twitter"
 )
 
 type TwitterImage struct {
