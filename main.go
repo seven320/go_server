@@ -14,6 +14,7 @@ import (
 	"github.com/justinas/alice"
 
 	"./controller"
+	"./db"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
@@ -50,29 +51,13 @@ func NewServer() *Server {
 }
 
 func (s *Server) Init(datasource string) {
-	cs := NewDB(datasource)
+	cs := db.NewDB(datasource)
 	dbcon, err := cs.Open()
 	if err != nil {
 		log.Fatalf("failed db init. %s", err)
 	}
 	s.db = dbcon
 	s.router = s.Route()
-}
-
-// package db
-
-type DB struct {
-	datasource string
-}
-
-func NewDB(datasource string) *DB {
-	return &DB{
-		datasource: datasource,
-	}
-}
-
-func (db *DB) Open() (*sqlx.DB, error) {
-	return sqlx.Open("mysql", db.datasource)
 }
 
 func (s *Server) Run(addr string) {
@@ -102,7 +87,7 @@ func (s *Server) Route() *mux.Router {
 	return r
 }
 
-//  middle ware
+//package  middle ware
 func RecoverMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
@@ -117,7 +102,7 @@ func RecoverMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// handlers
+// package handler
 type AppHandler struct {
 	h func(http.ResponseWriter, *http.Request) (int, interface{}, error)
 }
@@ -165,7 +150,7 @@ func (he *HTTPError) Error() string {
 	return fmt.Sprintf("message=%v", he.Message)
 }
 
-//sample
+//package sample
 type PublicHandler struct{}
 
 func NewPublicHandler() *PublicHandler {

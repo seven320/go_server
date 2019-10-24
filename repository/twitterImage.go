@@ -18,7 +18,8 @@ func GetTwitterImage(db *sqlx.DB, id string) (*model.TwitterImageModel, error) {
 	return &t, nil
 }
 
-func CreateTwitterImage(db *sqlx.DB, ti *model.TwitterImageModel) (sql.Result, error) {
+// create なので間にトランザクションを挟む，そのために受け取るDBは.Tx
+func CreateTwitterImage(db *sqlx.Tx, ti *model.TwitterImageModel) (sql.Result, error) {
 	stmt, err := db.Prepare("INSERT INTO twitter_user SET twitter_id = ?, twitter_icon_url = ?")
 	if err != nil {
 		return nil, err
