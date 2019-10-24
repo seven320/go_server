@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"net/url"
 
-	"../service"
 	"github.com/jmoiron/sqlx"
+
+	"github.com/seven320/go_server/service"
 )
 
 type TwitterDB struct {

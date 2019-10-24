@@ -13,10 +13,11 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/justinas/alice"
 
-	"./controller"
-	"./db"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+
+	"github.com/seven320/go_server/controller"
+	"github.com/seven320/go_server/db"
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
