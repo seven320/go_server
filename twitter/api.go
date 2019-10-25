@@ -3,13 +3,13 @@ package twitter
 // package main
 
 import (
-	"fmt"
 	"log"
 	"net/url"
 	"os"
 
 	"github.com/ChimeraCoder/anaconda"
 	"github.com/joho/godotenv"
+	"github.com/pkg/errors"
 )
 
 func loadEnv() {
@@ -32,9 +32,9 @@ func GetUserImage(user string) (imageurl string, err error) {
 	v := url.Values{}
 
 	User, err := api.GetUsersLookup(user, v)
-	if err != nil {
-		fmt.Printf("%s", err)
-		return "", err
+	if err != nil { //想定できるエラーはapi上限エラーと，存在しないユーザーのエラー
+		// fmt.Printf("%s", err)
+		return "", errors.Wrap(err, "failed find twitter user")
 	}
 	// fmt.Printf("%s", User[0].ProfileImageURL)
 	return User[0].ProfileImageURL, nil

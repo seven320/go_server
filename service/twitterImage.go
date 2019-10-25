@@ -9,10 +9,15 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 
-	"github.com/seven320/go_server/dbutil"
-	"github.com/seven320/go_server/model"
-	"github.com/seven320/go_server/repository"
-	"github.com/seven320/go_server/twitter"
+	// "github.com/seven320/go_server/dbutil"
+	// "github.com/seven320/go_server/model"
+	// "github.com/seven320/go_server/repository"
+	// "github.com/seven320/go_server/twitter"
+
+	"../dbutil"
+	"../model"
+	"../repository"
+	"../twitter"
 )
 
 type TwitterImage struct {
