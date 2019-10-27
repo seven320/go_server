@@ -2,7 +2,6 @@ package service
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"time"
 
@@ -33,13 +32,17 @@ func (ti *TwitterImage) GetTwitterImage(db *sqlx.DB, id string) (*model.TwitterI
 	if err != nil && err == sql.ErrNoRows {
 		log.Printf("検索")
 		imgurl, err := twitter.GetUserImage(id)
+		log.Printf("after return%s", imgurl)
+
 		if err != nil {
 			log.Printf("twitter error:%s", err)
 			return nil, err
 		}
-		t.Twitter = imgurl
+		t_new := model.TwitterImageModel{}
+		t_new.Twitter = imgurl
+		t_new.ID = id
 		if err := dbutil.TXHandler(ti.db, func(tx *sqlx.Tx) error {
-			_, err := repository.CreateTwitterImage(tx, t)
+			_, err := repository.CreateTwitterImage(tx, t_new)
 			if err != nil {
 				return err
 			}
@@ -50,13 +53,13 @@ func (ti *TwitterImage) GetTwitterImage(db *sqlx.DB, id string) (*model.TwitterI
 		}); err != nil {
 			return nil, errors.Wrap(err, "failed twitter image insert transaction")
 		}
-		return t, nil
+		return &t_new, nil
 	} else if err != nil {
 		log.Printf("%s", err)
 		return nil, err
 	}
 	elapsed := int(time.Since(t.Updateat).Hours())
-	fmt.Printf("elapsed, %d", elapsed)
+	// log.Printf("elapsed, %d", elapsed)
 	if elapsed > 24 {
 		imgurl, err := twitter.GetUserImage(id)
 		if err != nil {

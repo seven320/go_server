@@ -9,7 +9,8 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"github.com/seven320/go_server/service"
+	// "github.com/seven320/go_server/service"
+	"../service"
 )
 
 type TwitterDB struct {
@@ -31,6 +32,7 @@ func (t *TwitterDB) Show(w http.ResponseWriter, r *http.Request) (int, interface
 	if err != nil && err == sql.ErrNoRows {
 		return http.StatusBadRequest, nil, err
 	} else if err != nil {
+		// return http.StatusBadRequest, nil, err
 		return http.StatusBadRequest, nil, err
 	}
 

@@ -16,8 +16,10 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 
-	"github.com/seven320/go_server/controller"
-	"github.com/seven320/go_server/db"
+	// "github.com/seven320/go_server/controller"
+	// "github.com/seven320/go_server/db"
+	"./controller"
+	"./db"
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -80,11 +82,10 @@ func (s *Server) Route() *mux.Router {
 
 	r := mux.NewRouter()
 
-	r.Methods(http.MethodGet).Path("/twitter_image").Handler(commonChain.Then(NewPublicHandler()))
+	r.Methods(http.MethodGet).Path("/example").Handler(commonChain.Then(NewPublicHandler()))
 
 	twitterimageController := controller.NewTwitterImage(s.db)
-
-	r.Methods(http.MethodGet).Path("/show_databases").Handler(commonChain.Then(AppHandler{twitterimageController.Show}))
+	r.Methods(http.MethodGet).Path("/get_twitter_image").Handler(commonChain.Then(AppHandler{twitterimageController.Show}))
 	return r
 }
 
